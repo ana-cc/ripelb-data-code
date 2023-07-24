@@ -218,14 +218,17 @@ def compare_results_graph(probe_id: int):
 def get_df(filename: str):
     print(filename)
     results_list = load_data(filename)
+    print("loaded the results")
     filtered_results = list(filter_per_packet_load_balanced(results_list))
+    print("filtered the results")
     grouped_results = group_results_by_probe_id(filtered_results)
-    to_write_to_csv = defaultdict(dict)
-    to_plot =defaultdict(list)
+    print("processed the results")
+    to_write_to_csv = defaultdict(list)
+    to_plot = defaultdict(list)
     for probe_id in grouped_results:
         for measurement_id in grouped_results[probe_id]:
-            # consider only 3 measurements; we only have 3 runs for destination opts
-            if measurement_id < 4:
+            # consider only 5 measurements;
+            if measurement_id < 6:
                 if 'unique_paths' not in to_plot[probe_id]:
                     to_write_to_csv[probe_id]['unique_paths'] = []
                 if 'broken_paths' not in to_plot[probe_id]:
@@ -248,60 +251,10 @@ def get_df(filename: str):
 if __name__ == "__main__":
     # compare_results_graph(1001001)
     # the first probe_id in the list of probe_ids
-    base_files = glob.glob('PARIS-LB-EXP/*json')
+    base_files = glob.glob('PARIS-LB-EXP/paris-traceroute/*v6*json')
     for f in base_files:
         get_df(f)
-    files = glob.glob('PARIS-LB-EXP/*json.csv')
-    dataframes = []
-    for f in files:
-        df = pd.read_csv(f, index_col="b")
-        df[f"{f}"] = df["average_paths_detected"]
-        df.pop("average_paths_detected")
-        for i in range(0,9):
-            try:
-                df.pop(f"{i}")
-            except:
-                pass
-        dataframes.append(df)
 
-    x= dataframes[0].join(dataframes[1:])
-    x["base"] = x["PARIS-LB-EXP/baseline-lb.json.csv"]
-    x["dest"] = x["PARIS-LB-EXP/destination-lb.json.csv"]
-    x["hbh"] = x["PARIS-LB-EXP/hbh-lb2.json.csv"]
-    for filename in files:
-        x.pop(filename)
-    df = x.dropna()
-    #compare_results_graph(52380)
-
-    x["diffdest"] = x.base - x.dest
-    #x["diffhbh"] = x.base - x.hbh
-    #print(df)
-    print(len(x))
-    x2 = x[x["diffdest"]>1]
-    print(x2)
-    print(len(x2))
-
-    x2 = x[x["diffdest"]<=1][x["diffdest"]>=-1]
-    print(x2)
-    print(len(x2))
-
-    x2 = x[x["diffdest"]<-1]
-    print(x2)
-    print(len(x2))
-
-    print(x[x["hbh"].isna()])
-
-    #x2=x
-    #x2= x2[x2["diffhbh"]<-1]
-    #print(len(x2))
-    #print(x2)
-
-    df_melted = pd.melt(df)
-    print(df.describe())
-    sns.boxplot(df_melted, x="value", y="variable")
-    plt.ylabel("type of measurement")
-    plt.xlabel("number of paths detected")
-    plt.show()
 
 
 
