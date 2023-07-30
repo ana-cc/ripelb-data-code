@@ -224,28 +224,21 @@ def get_df(filename: str):
     grouped_results = group_results_by_probe_id(filtered_results)
     print("processed the results")
     to_write_to_csv = defaultdict(list)
-    to_plot = defaultdict(list)
     for probe_id in grouped_results:
         for measurement_id in grouped_results[probe_id]:
             # consider only 5 measurements;
             if measurement_id < 6:
-                if 'unique_paths' not in to_plot[probe_id]:
+                if 'unique_paths' not in to_write_to_csv[probe_id]:
                     to_write_to_csv[probe_id]['unique_paths'] = []
-                if 'broken_paths' not in to_plot[probe_id]:
+                if 'broken_paths' not in to_write_to_csv[probe_id]:
                     to_write_to_csv[probe_id]['broken_paths'] = []
                 list_of_paths, list_of_broken_paths = return_measurement_paths(probe_id, measurement_id, grouped_results)
                 list_of_unique_paths = compute_lower_bound_paths(list_of_paths)
 
                 to_write_to_csv[probe_id]['unique_paths'].append(len(list_of_unique_paths))
                 to_write_to_csv[probe_id]['broken_paths'].append(len(list_of_broken_paths))
-                to_plot.append(len(list_of_unique_paths))
     df = pd.DataFrame.from_dict(to_write_to_csv, orient="index")
     df.to_csv(f'{filename}.csv')
-    plot_df = pd.DataFrame.from_dict(to_plot, orient="index")
-
-    plot_df.describe()
-    #print(df[df["average_paths_detected"]==1])
-    print(df[df["average_paths_detected"]>=1])
 
 
 if __name__ == "__main__":
