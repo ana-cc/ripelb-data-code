@@ -85,7 +85,7 @@ def grouping_by_measurement_number(probe_result_list: List[TracerouteResult]) ->
 
     grouped_copy = grouped.copy()
     for measurement_number in grouped_copy:
-        if len(grouped[measurement_number])<16:
+        if len(grouped[measurement_number])<15:
             grouped.pop(measurement_number)
 
     return grouped
@@ -222,8 +222,9 @@ def get_df(filename: str):
     filtered_results = list(filter_per_packet_load_balanced(results_list))
     print("filtered the results")
     grouped_results = group_results_by_probe_id(filtered_results)
+    #print(grouped_results)
     print("processed the results")
-    to_write_to_csv = defaultdict(list)
+    to_write_to_csv = defaultdict(dict)
     for probe_id in grouped_results:
         for measurement_id in grouped_results[probe_id]:
             # consider only 5 measurements;
@@ -237,6 +238,7 @@ def get_df(filename: str):
 
                 to_write_to_csv[probe_id]['unique_paths'].append(len(list_of_unique_paths))
                 to_write_to_csv[probe_id]['broken_paths'].append(len(list_of_broken_paths))
+        print(to_write_to_csv)
     df = pd.DataFrame.from_dict(to_write_to_csv, orient="index")
     df.to_csv(f'{filename}.csv')
 
@@ -244,7 +246,9 @@ def get_df(filename: str):
 if __name__ == "__main__":
     # compare_results_graph(1001001)
     # the first probe_id in the list of probe_ids
-    base_files = glob.glob('PARIS-LB-EXP/paris-traceroute/*v6*json')
+
+    base_files = glob.glob('*.json')
+
     for f in base_files:
         get_df(f)
 
